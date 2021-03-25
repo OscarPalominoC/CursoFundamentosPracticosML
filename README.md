@@ -48,7 +48,11 @@ Crea una red neuronal con Tensor Flow para predecir qué tipo de prenda de vesti
 5. [Aprendizaje profundo](#aprendizaje-profundo)
     * [Introducción al aprendizaje profundo](#introducción-al-aprendizaje-profundo)
     * [Artículo: Conceptos básicos de Tensor Flow](#artículo-conceptos-básicos-de-tensor-flow)
-
+    * [Red neuronal convolucional](#red-neuronal-convolucional)
+    * [Tutorial: CNN para deteccion de rostros y ojos en tiempo real con OpenCV](#tutorial-cnn-para-deteccion-de-rostros-y-ojos-en-tiempo-real-con-opencv)
+    * [Realización del proyecto](#realización-del-proyecto)
+6. [Conclusiones](#conclusiones)
+    * [Recomendaciones para analizar correctamente tu problema](#recomendaciones-para-analizar-correctamente-tu-problema)
 
 ---
 
@@ -963,7 +967,7 @@ model = keras.Sequential([keras.layers.Flatten(input_shape = (28, 28)), keras.la
 ```
 **Compilación del modelo:**
 ```py
-model.compile(optimizer = tf.train.AdamOptimizer(), loss = ‘sparse_categorical_crossentropy’, metrics = [‘accuracy’])
+model.compile(optimizer = tf.optimizers.Adam(), loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 ```
 **Entrenamiento:**
 ```py
@@ -977,3 +981,298 @@ test_loss, test_acc = model.evaluate( test_images, test_labels )
 ```py
 model.predict(test_images)
 ```
+
+[Archivo Colab generado](https://colab.research.google.com/drive/1pe-5MMbeh20Ex6s7gIHMXm-61lt5HMql)
+
+[Archivo local](/code/7_practica_tensorflow_mnist.ipynb)
+
+## Red neuronal convolucional
+
+Modelan de forma consecutiva pequeñas piezas de información, al final combinan información en las capas más profundas de la red.
+
+* utilizada para el reconocimiento de imagenes.
+* divide la informacion de una manera consecutiva de modo que se concentra en aprender cada seccion en particular.
+* al final, se une cada parte del aprendizaje para asignarle una etiqueta.
+
+## Tutorial: CNN para deteccion de rostros y ojos en tiempo real con OpenCV
+
+Para hacer esto debemos entender que es una convolucion y que es el algoritmo Haar Cascade.
+
+En este [blog](https://datasmarts.net/es/deteccion-de-rostros-a-la-vieja-usanza-con-haar-cascades/) hay informacion al respecto.
+
+Ahi tambien pueden encontrar el codigo para implementarlo en una imagen pero en este caso lo haremos para detectar nuestros rostros en tiempo real, ademas proporciono el codigo para descargar los clasificadores
+
+Importaremos dos archivos desde github, uno con el clasificador de ojos y otro con el clasificador de rostros, ademas usaremos la libreria OpenCV para realizar la convolucion en nuestro modelo y para la manipulacion de imagenes, en este caso de la captura(ejm: el dibujo de los cuadrantes).
+
+Lamentablemente a pesar de que google colab tiene integrada la libreria OpenCV no me permite ejecutar en tiempo real el algoritmo, por eso les dejare el codigo aca:
+
+**0-Antes que nada instalamos OpenCV:**
+```py
+pip install opencv-python
+```
+**1-Ahora en nuestro IDE importamos las librerias numpy para manejo de matrices**, cv2 de opencv, requests para obtener los archivos de github y os para manejo de archivos, luego cargamos nuestros clasificadores, le decimos que si no encuentra esos archivos que los descargue de github.
+```py
+import numpy as np
+import cv2
+import requests
+import os
+
+#Descargar la data
+
+face = "haarcascade.xml"
+if not os.path.isfile(face):
+	url = "https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml"
+	content = requests.get(url).content
+	f = open(face, "wb")
+	f.write(content)
+
+eye = "eyecascade.xml"
+if not os.path.isfile(eye):
+	url_ = "https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_eye.xml"
+	content_ = requests.get(url_).content
+	f = open(eye, "wb")
+	f.write(content_)
+```
+**2- Creamos nuestros clasificadores a partir de la data importada**, luego creamos nuestra captura de video y con cv2.namedWindow haremos que sea posible cambiar el tamaño de nuestra ventana.
+```py
+#Clasificadores
+face_cascade = cv2.CascadeClassifier(face)
+eye_cascade = cv2.CascadeClassifier(eye)
+
+#Captura de video
+cap = cv2.VideoCapture(0)
+
+cv2.namedWindow("frame", cv2.WINDOW_NORMAL)
+```
+**3-Ahora creamos un infinite loop para mantener nuestra captura**, gray es la captura en escala de grises, faces son las regiones o bounding boxes donde clasificó el/los rostros los cuales tienen como variables:
+- x,y: coordenadas de los centros de cada bounding box
+- w,h: ancho y altura de la imagen
+
+Dibujaremos el bounding box de cada rostro segun esos datos y agregamos la palabra:“Person”.
+
+Una vez que tenemos las regiones de nuestros rostros(x,y,w,h), para detectar los ojos pasaremos a usar el clasificador de ojos para cada region de cada rostro y asi optimizar la busqueda de manera que no recorra toda la imagen.
+Dejare anotaciones en el codigo para un mejor entendimiento.
+```py
+while 1:
+	ret, frame = cap.read()
+	#Imagen en escala de grises
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	
+	#Deteccion de rostros con nuestro clasificador
+	faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+	
+	#(coordenadas en xy, ancho y alto)
+	for (x,y,w,h) in faces:
+		#Dibujar rectangulo(imagen, coordenadas, ancho y alto, color en RGB, grosor)
+		img = cv2.rectangle(frame, (x,y), (x+w, y+h), (0,0,255), 2)
+		cv2.putText(img = img,
+                text = "Person",
+                org = (x-10, y-10),
+                fontFace = cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale = 0.6,
+                color = (0,0,255),
+                thickness= 1
+                )
+		#Region del rostro en la imagen en escala de grises
+		roi_gray = gray[y:y+h, x:x+w]
+		
+		#Region del rostro en la imagen a colores
+		roi_color = img[y:y+h, x:x+w]
+		
+		#Deteccion de ojos por cada rostro
+		#Recuerda que el kernel o filtro solo funciona con imagenes en escala de grises
+		eyes = eye_cascade.detectMultiScale(roi_gray)
+		
+		#(coordenadas en xy, ancho y alto)
+		for (ex,ey,ew,eh) in eyes:
+			#Dibuja el rectangulo en la region del rostro
+			img = cv2.rectangle(roi_color, (ex,ey), (ex+ew, ey+eh), (0,255,0), 2)
+```			
+
+**Ahora todo el codigo se veria asi:**
+```py
+import numpy as np
+import cv2
+import requests
+import os
+
+#Descargamos los clasificadores
+face = "haarcascade.xml"
+if not os.path.isfile(face):
+	url = "https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml"
+	content = requests.get(url).content
+	f = open(face, "wb")
+	f.write(content)
+
+eye = "eyecascade.xml"
+if not os.path.isfile(eye):
+	url_ = "https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_eye.xml"
+	content_ = requests.get(url_).content
+	f = open(eye, "wb")
+	f.write(content_)
+
+#Clasificadores
+face_cascade = cv2.CascadeClassifier(face)
+eye_cascade = cv2.CascadeClassifier(eye)
+
+#Captura de video
+cap = cv2.VideoCapture(0)
+
+cv2.namedWindow("frame", cv2.WINDOW_NORMAL)
+
+while 1:
+	ret, frame = cap.read()
+	#Imagen en escala de grises
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	
+	#Deteccion de rostros con nuestro clasificador
+	faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+	
+	#(coordenadas en xy, ancho y alto)
+	for (x,y,w,h) in faces:
+		#Dibujar rectangulo(imagen, coordenadas, ancho y alto, color en RGB, grosor)
+		img = cv2.rectangle(frame, (x,y), (x+w, y+h), (0,0,255), 2)
+		cv2.putText(img = img,
+                text = "Person",
+                org = (x-10, y-10),
+                fontFace = cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale = 0.6,
+                color = (0,0,255),
+                thickness= 1
+                )
+		#Region del rostro en la imagen en escala de grises
+		roi_gray = gray[y:y+h, x:x+w]
+		
+		#Region del rostro en la imagen a colores
+		roi_color = img[y:y+h, x:x+w]
+		
+		#Deteccion de ojos por cada rostro
+		#Recuerda que el kernel o filtro solo funciona con imagenes en escala de grises
+		eyes = eye_cascade.detectMultiScale(roi_gray)
+		
+		#(coordenadas en xy, ancho y alto)
+		for (ex,ey,ew,eh) in eyes:
+			#Dibuja el rectangulo en la region del rostro
+			img = cv2.rectangle(roi_color, (ex,ey), (ex+ew, ey+eh), (0,255,0), 2)
+			
+	
+	cv2.imshow("frame", frame)
+	cv2.waitKey(1)
+
+cap.release()
+cv2.destroyAllWindows()
+```
+Y listo, mantente cerca de la camara de tu computadora para que veas como funciona.
+
+Podremos probar este algoritmo para algo mas simple, en este caso para detectar los rostros de Messi y CR7:
+```py
+import numpy as np
+import cv2
+import requests
+import os
+import matplotlib.pyplot as plt
+
+#Download data
+face = "haarcascade.xml"
+if not os.path.isfile(face):
+	url = "https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml"
+	content = requests.get(url).content
+	f = open(face, "wb")
+	f.write(content)
+
+eye = "eyecascade.xml"
+if not os.path.isfile(eye):
+	url_ = "https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_eye.xml"
+	content_ = requests.get(url_).content
+	f = open(eye, "wb")
+	f.write(content_)
+
+image = "messi_cr7.jpg"
+if not os.path.isfile(image):
+	url_ = "https://publimetro.pe/resizer/n7FU8sz4fE1ml7RPdvi_6XEFp1w=/980x528/smart/arc-anglerfish-arc2-prod-elcomercio.s3.amazonaws.com/public/HBSLR2R2ZVGOFBJXSFIJZ3HOTQ.jpg"
+	content_ = requests.get(url_).content
+	f = open(image, "wb")
+	f.write(content_)
+
+
+#Classifiers
+face_cascade = cv2.CascadeClassifier(face)
+eye_cascade = cv2.CascadeClassifier(eye)
+
+#Image we will predict
+img = cv2.imread(image)
+plt.imshow(img)
+
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+#Detect face
+faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+
+for (x,y,w,h) in faces:
+	#params = (image, position, width and height, color in RGB scale, and thickness)
+	img = cv2.rectangle(img, (x,y), (x+w, y+h), (255,0,0), 2)
+	roi_gray = gray[y:y+h, x:x+w]
+	roi_color = img[y:y+h, x:x+w]
+	#Detect eyes per face
+	eyes = eye_cascade.detectMultiScale(roi_gray)
+	for (ex,ey,ew,eh) in eyes:
+		cv2.rectangle(roi_color, (ex,ey), (ex+ew, ey+eh), (0,255,0), 2)
+
+
+#Show image
+cv2.namedWindow("image", cv2.WINDOW_NORMAL)
+
+while 1:
+	cv2.imshow("image", img)
+	cv2.waitKey(1)
+
+cv2.destroyAllWindows()
+```
+Output:
+
+![Output](/images/messi-cr7.webp)
+
+[Youtube: Redes Neuronales Convolucionales - La VISIÓN de la Inteligencia Artificial 👁‍🗨](https://www.youtube.com/watch?v=V8j1oENVz00)
+
+## Realización del proyecto
+
+**Explicacion del funcionamiento de las capas que usamos.**
+
+La primera capa de esta red, tf.keras.layers.Flatten, transforma el formato de las imagenes de un arreglo bi-dimensional (de 28 por 28 pixeles) a un arreglo uni dimensional (de 28*28 pixeles = 784 pixeles). Observe esta capa como una capa no apilada de filas de pixeles en la misma imagen y alineandolo. Esta capa no tiene parametros que aprender; solo reformatea el set de datos.
+
+Despues de que los pixeles estan “aplanados”, la secuencia consiste de dos capastf.keras.layers.Dense. Estas estan densamente conectadas, o completamente conectadas. La primera capa Dense tiene 128 nodos (o neuronas). La segunda (y ultima) capa es una capa de 10 nodos softmax que devuelve un arreglo de 10 probabilidades que suman a 1. Cada nodo contiene una calificacion que indica la probabilidad que la actual imagen pertenece a una de las 10 clases.
+
+[Archivo Colab generado](https://colab.research.google.com/drive/1OQqmBPdFB1yU0ZHs287Oj_6xMekzEqbq)
+
+[Archivo local](/code/Proyecto.ipynb)
+
+# Conclusiones
+
+## Recomendaciones para analizar correctamente tu problema
+
+Saber cuál modelo usar dependerá del conjunto de datos y de lo que se quiera lograr.
+
+**Regresión.**
+* Se usa cuando queremos hacer predicción.
+* Se usa para saber un pronóstico.
+* Todo esto es una probabilidad.
+
+**Árboles de decisión.**
+* Se aplica en Netflix.
+* Se aplica en tiendas en línea.
+* Redes sociales.
+* Pronosticar el tiempo.
+
+**K-Means.**
+* Saber en qué lugar podría tener éxito un restaurante.
+* Cuando queremos encontrar similitudes en un libro.
+* Encontrar patrones en la conducta de un comprador.
+
+**Deep Learning.**
+* Filtros.
+* Detectar emociones, estados de ánimo.
+* Se puede usar para crear historias (ejemplo GPT-3).
+* Se aplica para extraer información de voz.
+* Se utiliza para agregar clasificación de imagenes.
+* Además de poder trabajar con datos, puede trabajar con imágenes, audio, vídeo, etc.

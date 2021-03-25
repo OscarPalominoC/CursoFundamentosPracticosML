@@ -29,6 +29,26 @@ Crea una red neuronal con Tensor Flow para predecir qué tipo de prenda de vesti
     * [¿Qué es la predicción de datos?](#qué-es-la-predicción-de-datos)
     * [Sobreajuste y subajuste en los datos](#sobreajuste-y-subajuste-en-los-datos)
     * [Regresión lineal simple y regresión lineal múltiple](#regresión-lineal-simple-y-regresión-lineal-múltiple)
+    * [Regresión lineal simple con Scikit-Learn: división de los datos](#regresión-lineal-simple-con-scikit-learn-división-de-los-datos)
+    * [Regresión lineal simple con Scikit-Learn: creación del modelo](#regresión-lineal-simple-con-scikit-learn-creación-del-modelo)
+    * [Regresión logística con Scikit-Learn: definición y división de datos](#regresión-logística-con-scikit-learn-definición-y-división-de-datos)
+    * [Regresión logística con Scikit-Learn: evaluación del modelo](#regresión-logística-con-scikit-learn-evaluación-del-modelo)
+    * [Artículo: Matriz de confusión](#artículo-matriz-de-confusión)
+3. [Árboles de decisión](#árboles-de-decisión)
+    * [¿Qué es un árbol de decisión y cómo se divide?](qué-es-un-árbol-de-decisión-y-cómo-se-divide)
+    * [Comprendiendo nuestro data set para la creación de un árbol de decisión](#comprendiendo-nuestro-data-set-para-la-creación-de-un-árbol-de-decisión)
+    * [Creando un clasificador con Scikit-Learn](#creando-un-clasificador-con-scikit-learn)
+    * [Entrenamiento del modelo de clasificación](#entrenamiento-del-modelo-de-clasificación)
+    * [Visualización del árbol de decisión](#visualización-del-árbol-de-decisión)
+4. [K-Means](#k-means)
+    * [¿Qué es K-Means?](#qué-es-k-means)
+    * [Cargando el data set de Iris](#cargando-el-data-set-de-iris)
+    * [Construcción y evaluación del modelo con K-Means](#construcción-y-evaluación-del-modelo-con-k-means)
+    * [Graficación del modelo](#graficación-del-modelo)
+5. [Aprendizaje profundo](#aprendizaje-profundo)
+    * [Introducción al aprendizaje profundo](#introducción-al-aprendizaje-profundo)
+    * [Artículo: Conceptos básicos de Tensor Flow](#artículo-conceptos-básicos-de-tensor-flow)
+
 
 ---
 
@@ -408,6 +428,552 @@ Los algoritmos de regresión, tanto lineal como múltiple trabajan únicamente c
 
 [Youtube: Regresión Lineal y Mínimos Cuadrados Ordinarios | DotCSV](https://www.youtube.com/watch?v=k964_uNn3l0)
 
+## Regresión lineal simple con Scikit-Learn: división de los datos
+
+Procedimiento de Regresión Linear Simple con Scikit-Learn:
+
+Importar las librerías y modelos necesarios:
+* pandas: import pandas as pd → para manejo de datos
+* matplotlib: import matplotlib.pyplot as plt → permite insertar gráficos estadísticos
+* train_test_split: from sklearn import train_test_split → este módulo permite separar nuestros dato en datos de entrenamiento y prueba
+* LinearRegression: from sklearn import LinearRegression → El modelo en sí
+
+Importar los datos (en este caso desde un archivo csv):
+```py
+dataset = pd.read_csv(<nombre_archivo>)
+```
+Asignar los datos a sus respectivas variables:
+```py
+x = dataset.iloc[<slice>]
+y = dataset.iloc[<slice>] #iloc sólo admite slice notation para la selección de parte de los datos
+```
+Separar los datos en datos de prueba y datos de test:
+```py
+X_train, X_test, Y_train, Y_test = train_test_split(x,y,test_size=0.2, random_state=5)
+# test_size → porcentaje de los datos de prueba a tomar
+# random_state = 0 → tipo de selección de datos (a un mismo valor devuelve la misma selección)
+```
+
+## Regresión lineal simple con Scikit-Learn: creación del modelo
+
+**Asignamos nuestro módulo a una variable:**
+```py
+regressor = LinearRegression() 
+# Este paso es necesario para que el entrenamiento se guarde en esta variable, además es más fácil cambiar de modelo en caso sea necesario
+```
+**Entrenamos nuestro algoritmo (todos los modelos se entrenan así)**
+```py
+regressor.fit(X_train,Y_train) 
+# LinearRegression().fit(X_train,Y_train) funciona pero no se guardan los resultados
+```
+* Ya tenemos entrenado nuestro algoritmo, así podemos extraer los datos del entrenamiento:
+    * predictor.coef_ → devuelve el coeficiente (a) de la recta de regresión (ax+b=0)
+    * predictor.intercept_ → devuelve el punto de corte con el eje y (b) de la recta de regresión (ax+b=0)
+    * predictor.predict(<val>) → devuelve la predicción del dato de entrada val
+
+**Bonus: Graficado de Resultados**
+
+Usaremos la librería matplotlib.pyplot para realizar nuestros gráficos, recordemos que ya la importamos:
+```py
+import matplotlib.pyplot as plt
+```
+Podemos darle un alias a la librería (no lo considero necesario):
+```py
+viz_train = plt #Yo trabajaré solo con plt
+```
+Para visualizar una nube de puntos usamos el método scatter:
+```py
+plt.scatter(X_train, Y_train, color='blue')
+plt.scatter(X_test, Y_test, color='red')
+```
+Para visualizar una línea que una los puntos usamos el método plot:
+```py
+plt.plot(X_train, regressor.predict(X_train), color = 'black') 
+#regressor.predict(X_train) devuelve los valores de predicción para los valores de X_train, graficamos así la línea de regresión
+```
+
+Ahora para visualizar el gráfico usamos el método show:
+```py
+plt.show()
+```
+
+### El método score
+```py
+regressor.score(X_test, Y_test)
+```
+Este método nos devuelve un número entre 0 y 1, es la probabilidad de predecir correctamente los datos de prueba, ¿Cómo podemos mejorar el resultado? Mejorando los datos, aumentando el tamaño del dataset, posiblemente usando una regresión líneal múltiple (evalúa si es programador backend, frontend, la tecnología que usa,etc.).
+
 [Notebook Collab generado](https://colab.research.google.com/drive/1YWl8gLsX5eTBefYxopJyN5OgnBxBetDB)
 
-[Notebook local](/)
+[Notebook local](/code/3_regresion_lineal_simple.ipynb)
+
+## Regresión logística con Scikit-Learn: definición y división de datos
+
+Modelo de regresión que está más enfocado en la clasificación de datos cualitativos, entregándonos como resultado un 0 o 1 (sí o no). 
+
+![Regresión logística](/images/logistica.jpg)
+
+### Implementación del código
+
+**Importar las librerías necesarias**
+```py
+import pandas as pd
+from sklearn.model_selection import train_test_split #permite dividir nuestros datos
+from sklearn import metrics #nos permite evaluar nuestro modelo
+from sklearn.linear_model import LogisticRegression() #modelo que vamos a aplicar
+import matplotlib.pyplot as plt
+import seaborn as sns #nos permite mejorar la presentación de los gráficos
+%matplotlib inline #nos permite insetar gráficos en el notebook
+```
+**Importamos nuestros datos y generamos nuestras variables**
+```py
+diabetes = pd.read_csv(<nombre_archivo>)
+feature_cols = ['Pregnancies','Glucose','BloodPressure','SkinThickness','Insulin','BMI','DiabetesPedigreeFunction','Age'] #columnas presentes en el dataset
+x= diabetes[feature_cols]
+y= diabetes[['Outcome']]
+X_train, X_test, Y_train, Y_test = train_test_split(x,y,test_size=0.25, random_state=0)
+```
+**Entrenamos el modelo**
+```py
+logreg = LogisticRegression()
+logreg.fit(X_train,Y_train)
+y_pred = logreg.predict(X_test) #Recogemos las predicciones que entrega nuestro modelo para los datos de prueba
+```
+
+## Regresión logística con Scikit-Learn: evaluación del modelo
+
+### Matriz de confusión
+
+![Matriz de confusión](/images/matriz-confusion.png)
+
+Representación gráfica que nos permite ver el grado de acierto de nuestro modelo. El gráfico tiene cuatro divisiones: Verdaderos Positivos (VP), Falsos Positivos (FP), Falsos Negativos (FN) y Verdaderos Negativos (VN). Siendo los datos verdaderos los que nos interesa maximizar (valores de la diagonal).
+
+**Graficado de la Matriz de Confusion:**
+
+Los datos necesarios los obtenemos de nuestro modelo (con ayuda del módulo metrics):
+```py
+cnf_matrix = metrics.confusion_matrix(y_test,y_pred)
+```
+**Definimos los ejes con sus respectivas etiquetas**
+```py
+class_names = [0,1]
+fig,ax = plt.subplots() #obtenemos las variables figura y ejes del gráfico (nos permite cambiar los atributos propios de cada seccion)
+tick_marks = np.arange(len(class_names))  #definimos los valores que van a tener las líneas de guía
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names) #definimos los tick marks en el gráfico
+```
+**Creamos la presentación del gráfico**
+```py
+sns.heatmap(pd.DataFrame(cnf_matrix), annot = True, cmap='Blues_r', fmt='g')
+ax.axis.set_label_position('top')
+plt.tight_layout()
+plt.title('Matriz de confusion', y=1.1)
+plt.y_label('Etiqueta Actual')
+plt.x_label('Etiqueta de Prediccion)
+```
+Seaborn nos permite crear un mapa de calor a partir de los valores entregados (la matriz de confusión en este caso), los parámetros que entregamos son: annot → permite colocar los valores sobre el gráfico, cmap → estilo del gráfico, fmt → formato de los valores
+- ax.xaxis,set_label_position() → nos permite definir donde colocar la etiqueta del eje x
+- plt.tight_layout() → crea un padding en torno al gráfico (lo enmarca)
+
+**Nota**
+
+Otra forma de evaluar nuestro modelo es a través del método accuracy_score del módulo metrics:
+```py
+metrics.accuracy_score(Y_test,y_pred)
+```
+
+[Notebook Collab generado](https://colab.research.google.com/drive/1VZJr08ADqrebfjCBEkKA34ht8hOkDDZp?usp=sharing)
+
+[Notebook local](/code/4_regresion_logistica.ipynb)
+
+## Artículo: Matriz de confusión
+
+Los modelos de clasificación son capaces de predecir cuál es la etiqueta correspondiente a cada ejemplo o instancia basado en aquello que ha aprendido del conjunto de datos de entrenamiento. Estos modelos necesitan ser evaluados de alguna manera y posteriormente comparar los resultados obtenidos con aquellos que fueron entrenados.
+
+Una manera de hacerlo es mediante la matriz de confusión la cual nos permite evaluar el desempeño de un algoritmo de clasificación a partir del conteo de los aciertos y errores en cada una de las clases del algoritmo.
+
+Como su nombre lo dice tenemos una matriz que nos ayuda a evaluar la predicción mediante positivos y negativos como se muestra en la figura.
+
+![Matriz de confusión](/images/matriz-confusion.png)
+
+* **Los verdaderos positivos (VP)** son aquellos que fueron clasificados correctamente como positivos como el modelo.
+* **Los verdaderos negativos (VN)** corresponden a la cantidad de negativos que fueron clasificados correctamente como negativos por el modelo.
+* **Los falsos negativos (FN)** es la cantidad de positivos que fueron clasificados incorrectamente como negativos.
+* **Los falsos positivos (FP)** indican la cantidad de negativos que fueron clasificados incorrectamente como negativos.
+
+Para que lo anterior quede más claro consideremos el siguiente ejemplo.
+
+Un médico tiene cuatro pacientes y a cada uno se les solicitó un examen de sangre y por error el laboratorio realizó también un estudio de embarazo, cuando los pacientes llegan el médico les da los resultado.
+
+A la primera paciente le da la noticia que está embarazada y ella ya lo sabía dado que tiene 3 meses de embarazo, es decir, un verdadero positivo.
+
+El siguiente paciente llega y le dice que no está embarazada y es una clasificación evidente dado que es hombre (Verdadero negativo).
+
+El tercer paciente llega y los resultados le indican que no está embarazada sin embargo tiene cuatro meses de embarazo, es decir, que la ha clasificado como falso negativo.
+
+Y por último el cuarto paciente sus resultados han indicado que está embarazado sin embargo es hombre por lo cual es imposible, dando como resultado un falso positivo.
+
+Lo anterior es un proceso que se realiza por cada instancia a clasificar y nos permite calcular la exactitud y su tasa de error con las siguientes fórmulas.
+
+![Exactitud](/images/exactitud.webp)
+
+![Tasa de error](/images/tasa-error.webp)
+
+Por lo tanto a mayor exactitud nuestro modelo ha aprendido mejor.
+
+# Árboles de decisión
+
+## ¿Qué es un árbol de decisión y cómo se divide?
+
+Forma gráfica y analítica de representar sucesos y sus posibles consecuencias.
+
+**Ventajas**
+* Claridad de datos → Podemos ver claramente los caminos tomados
+* Tolerantes al ruido y valores faltantes → Aunque no es recomendable podemos hacer nuestro análisis con ruido (con cierto éxito)
+* Permite hacer predicciones a través de las reglas extraídas
+**Desventajas**
+* El criterio de división puede llegar a ser deficiente
+* Se puede llegar a un sobreajuste
+* Pueden aparecer ramas poco significativas
+**Criterios de División de un árbol de decisión:**
+* Ganancia de información
+* Crear pequeños árboles
+**Optimización de nuestro modelo:**
+* Evitar el sobreajuste
+* Selección de atributos → Seleccionar sólo los atributos relevantes para nuestro modelo
+* Campos nulos → Es mejor evitar los campos nulos
+
+[Árboles de Decisión Clasificación – Teoría](https://aprendeia.com/arboles-de-decision-clasificacion-teoria-machine-learning/)
+
+![Árbol de decisión](/images/decision.jpg)
+
+## Comprendiendo nuestro data set para la creación de un árbol de decisión
+
+### Ejemplo de Entrenamiento de un árbol de decisión
+
+Trabajaremos con el dataset Titanic.
+
+**importamos nuestras librerías:**
+```py
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+from seaborn import tree
+
+% matplotlib inline
+sns.set()
+```
+**Leemos nuestro dataset (en este caso está dividido en datos de entrenamiento y prueba)**
+```py
+test_df = pd.read_csv(<nombre_archivo>)
+train_df = pd.read_csv(<nombre_archivo>)
+```
+**Para saber a que tipo de datos pertenece cada columna y la cantidad de datos nulos en cada una usamos el método info:**
+```py
+train_df.info()
+```
+**Nota**
+
+Podemos generar visualizaciones rápidas de los datos con el método plot:
+```py
+train_df.Survived.value_counts().plot(kind='bar',color=('b','r'))
+plt.show()
+```
+
+## Creando un clasificador con Scikit-Learn
+
+**Tratamiento de Datos**
+
+Para transformar datos cualitativos a un código que entienda la máquina podemos usar un label encoder, se encuentra en el módulo preprocessing:
+```py
+from sklearn import preprocessing
+label_encoder = preprocessing.LabelEncoder()
+encoder_sex = label_encoder.fit_transform(train_df['Sex'])
+```
+Obtenemos así un encoder para la columna Sexo (no usaremos este encoder, usaremos el método de dummies)
+
+**Completaremos los valores nulos de Age (con la media de edades) y Embarked (con ‘S’; embarcados en Southampton)**
+```py
+train_df.Age = train_df.Age.fillna(train_df.Age.median())
+train_df.Embarked = train_df.Embarked.fillna('S')
+```
+**Eliminamos la columnas que no consideramos necesarias**
+```py
+train_predictors = train_df.drop(['PassengerId','Survived','Name','Ticket','Cabin'], axis=1) #axis=1 se refiere a las columnas (axis=0 → filas)
+```
+**Separamos las columnas categóricas de las numéricas:**
+
+Para detectar la columnas categóricas analizamos la columna con dtype (debe ser igual a ‘object’), consideramos además que no haya mas de 10 diferentes valores (como factor de seguridad)
+```py
+categorical_cols = [cname for cname in train_predictors.columns if train_predictors[cname].nunique() <10
+                    and train_predictors[cname].dtype=='object']
+```
+Para detectar la columnas numéricas analizamos la columna con dtype (debe ser igual a 'int64' o 'float64')
+```py
+numerical_cols = [cname for cname in train_predictors if
+                  train_predictors[cname].dtype in ['int64','float64']]
+```
+Unimos nuevamente las columnas en una sola variable pero con los datos numéricos separados de los categóricos
+```py
+my_cols = categorical_cols+numerical_cols
+train_predictors = train_predictors[my_cols]
+```
+**Usamos el método get_dummies para codificar las variables numéricas**
+```py
+dummy_encoded_train_predictors = pd.get_dummies(train_predictors)
+```
+**Ahora tenemos nuestra data sin valores vacíos y codificada, lista para entrenar nuestro algoritmo**
+
+## Entrenamiento del modelo de clasificación
+
+### Entrenamiento del Modelo
+
+**Generamos nuestras variables de entrenamiento**
+```py
+y_target = train_df['Survived'].values
+x_features_one = dummy_encoded_train_predictors
+```
+**Podemos dividir los datos en entrenamiento y test con train_test_split pero tenemos un csv con datos de test, usaremos estos datos (previamente tratados al igual que los datos de entrenamiento)**
+```py
+y_test = test_df['Survived'].values
+x_test = dummy_encoded_test_predictors
+```
+**Entrenamos el modelo:**
+```py
+tree_one = tree.DecisionTreeClassifier()
+tree_one.fit(x_train,y_train)
+```
+**Obtenemos el grado de precisión de nuestro modelo con el metodo score:**
+```py
+tree_one_accuracy = tree_one.score(x_test, y_test)
+```
+
+## Visualización del árbol de decisión
+
+**Importamos los módulos necesarios**
+```py
+from io import StringIO #nos permite trabaja con archivos externos
+from IPython,display import Image, display #permite interactuar y crear imágenes
+import pydotplus #permite usar el lenguaje graphviz para crear imágenes
+```
+**Exportamos los datos a graphviz y luego los representamos en un archivo png:**
+```py
+out = StringIO()
+tree.export_graphviz(tree_one, out_file=out) # exportamos los datos del árbol en lenguaje graphviz a StringIO
+graph = pydotplus.graph_from_dot_data(out.getvalue()) #generamos el gráfico a través de pydotplus
+graph.write_png('titanic.png') #guardamos el archivo en formato png
+```
+
+![Arbol de decisión](/images/titanic.png)
+
+[Documentación Scikit-Learn: Árboles de decisión](https://scikit-learn.org/stable/modules/tree.html)
+
+[Notebook Collab generado](https://colab.research.google.com/drive/1btCCQlSaDPNkXf9duqMIIgBhM_qnLAqv?usp=sharing)
+
+[Notebook local](/code/5_arbol_decision.ipynb)
+
+# K-Means
+
+## ¿Qué es K-Means?
+
+Crea K grupos a partir de un grupo de observaciones, los elementos deben de tener similitudes.
+
+* Selecciona un valor para K (Centroides)
+* Asignamos cada uno de los elementos restante al centro mas cercano.
+* Asignamos cada punto punto a su centroide mas cercano
+* Repetimos paso 2 y 3 hasta que los centros no se modifiquen.
+
+**Método del codo**
+
+Lo que hace es dividir los siguiente centroides o información hasta graficarlo en un panel o un eje XY
+
+* Calcula el agrupamiento para diferentes de K
+* El error al cuadrado para cada punto es el cuadrado de las distancia del punto desde su centro.
+
+[Youtube: StatQuest: K-means clustering](https://www.youtube.com/watch?v=4b5d3muPQmA)
+
+## Cargando el data set de Iris
+
+Este conjunto de datos es tan popular, que es considerado el Hola Mundo de los programadores de ML.
+
+### Agrupando los datos
+
+* Virginica, Versicolor y Setosa
+* 50 muestras de cada especie
+* Largo y ancho del sépalo y pétalo
+
+**Importamos las librerías**
+```py
+from sklearn.cluster import KMeans
+from sklearn import datasets
+import pandas as pd
+import matplotlib.pyplot as plt
+
+%matplotlib inline
+```
+**Cargamos el dataset Iris**
+```py
+iris = datasets.load_iris()
+```
+**Guardamos los datos del dataset en variables temporales**
+```py
+x_iris = iris.data
+y_iris = iris.target
+```
+**Creamos los dataframes con las variables X y Y.**
+```py
+x = pd.DataFrame(iris.data, columns = ['sepal length', 'sepal width', 'petal length', 'petal width'])
+y = pd.DataFrame(iris.target, columns = ['Target'])
+x.head()
+
+ 	sepal length 	sepal width 	petal length 	petal width
+0 	         5.1 	        3.5 	        1.4 	        0.2
+1 	         4.9 	        3.0 	        1.4 	        0.2
+2 	         4.7 	        3.2 	        1.3 	        0.2
+3 	         4.6 	        3.1 	        1.5 	        0.2
+4 	         5.0 	        3.6 	        1.4 	        0.2
+```
+**Graficamos un scatter plot, con el fin de explorar los datos del DataFrame**
+```py
+plt.scatter(x['petal length'], x['petal width'], c = 'blue')
+plt.xlabel('Petal Lenght (cm)', fontsize = 10)
+plt.ylabel('Petal Width (cm)', fontsize = 10)
+```
+![Dataset Iris](/images/iris.png)
+
+De acuerdo a la imagen que vemos del análisis exploratorio visual, podríamos decir que hay 2 grandes grupos, fácil, ¿no? Pues no es tan fácil, porque en el grupo grande podrían existir 3 o 4 subgrupos, entonces, ¿Cómo podemos saber cuántos grupos debemos utilizar? **Con el método del Codo**.
+
+## Construcción y evaluación del modelo con K-Means
+
+**Creamos el modelo**
+```py
+model = KMeans(n_clusters=2, max_iter=1000)
+model.fit(x)
+y_labels = model.labels_
+```
+n-clusters es la similitud a K, lo que nos va a permitir generar los centroides en nuestro valor de X, Y. Cada uno de esos grupos está definido por n clusters, lo siguiente es que tenemos que iterar, que es el siguiente parámetro, y esa iteración es cómo vamos a mover K hasta encontrar las distancias más cercanas en cada uno de esos puntos, anteriormente mostrados en el plano X, Y.
+
+**Creamos las predicciones**
+```py
+y_kmeans = model.predict(x)
+print(f'Predicciones {y_kmeans}')
+
+Predicciones [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0]
+```
+**Probamos el accuracy**
+```py
+from sklearn import metrics
+
+accuracy = metrics.adjusted_rand_score(y_iris, y_kmeans)
+print(accuracy)
+
+0.5399218294207123
+```
+Con el resultado obtenido podemos decir que es un mal modelo, porque la predicción es prácticamente como arrojar una moneda al aire.
+
+**Código para encontrar el número de ideal centroídes**
+
+> Gracias [danielfzc](https://platzi.com/p/danielfzc/)
+```py
+wcss = []
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, max_iter=1000, random_state=0)
+    kmeans.fit(x)
+    wcss.append(kmeans.inertia_)
+plt.plot(range(1, 11), wcss)
+plt.title('Elbow Method')
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
+plt.show()
+```
+![Centroides](/images/centroides.png)
+
+Podemos observar que el número de centroides ideales es 3. Probamos con el código y verificamos que el accuracy es de 0.7302382722834697.
+
+## Graficación del modelo
+
+**Graficamos con el siguiente código**
+```py
+plt.scatter(x['petal length'], x['petal width'], c = y_kmeans, s = 30)
+plt.xlabel('Petal Length', fontsize = 10)
+plt.ylabel('Petal Width', fontsize = 10)
+```
+![Scatter](/images/scatter-kmeans.png)
+
+¿Qué ocurre con los puntos que se encuentran entre los grupos que parece que no pertenecen al grupo en el que están? K-Means encuentra similitudes, puede que el algoritmo encuentre similitudes con el grupo que no le corresponde, pero eso no significa que esté mal, significa que no vamos a tener un modelo al 100%, o podríamos caer en un sobreajuste. El sobreajuste significa que el algoritmo memoriza la información, más no aprende de ella.
+
+> Buenas tardes a todos, para aquellos que obtuvieron una precisión del 36-37% (al menos para este caso en particular) es debido a que trabajaron con los datos directamente sin estandarizarlos previamente (estoy seguro que el tema de estandarización será tratado en clases posteriores, así que no teman). Haciendo uso de la estandarización pude obtener una precisión de 0.89. A continuación, dejo mi código para que puedan observar la estandarización de datos.
+```py
+vinos = datasets.load_wine()
+variables = vinos.feature_names
+x_vinos = vinos.data
+y_vinos = vinos.target
+
+# Normalizacion de los valores de “X”
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(vinos.data)
+x_scaled = scaler.transform(vinos.data)
+x = pd.DataFrame(x_scaled, columns=variables, ) #Si deseas trabajar con los datos sin estandarizar, solo cambia x_scaled por x_vinos
+y = pd.DataFrame(y_vinos, columns= ["Target"])
+x.head(5)
+```
+
+[Archivo Colab generado](https://colab.research.google.com/drive/1bhe4gYgPW6dYVozvLhTHaVqGVqZeXa4T#scrollTo=Kr6FJZxGcDn1)
+
+[Archivo local](/code/6_k_means.ipynb)
+
+# Aprendizaje profundo
+
+## Introducción al aprendizaje profundo
+
+* El aprendizaje profundo no es un tema nuevo, data de los años 50 aproximadamente pero su uso se ha popularizado debido a la existencia de librerias como TensorFlow (Desarrollador por Google) y pyTorch (Desarrollador por Facebook).
+* Gracias a las redes neuronales ahora los inputs no necesariamente tienen que ser datos, también pueden ser audios e imágenes.
+* Es una subcategoría de ML que crea diferentes niveles, de abstracción que representa los datos y se centra en encontrar similitudes o patrones. Utilizamos [tensores](https://es.wikipedia.org/wiki/C%C3%A1lculo_tensorial) para representar estructuras de datos más complejas.
+* Los fundamentos se encuentran en las neuronas. Las redes neuronales artificiales estan basadas en las conexiones neuronales divididas en capas de aprendizaje, estas son: Capa de entrada, capas ocultas y capa de salida.
+* Para poder aprender se necesita una función de activación, utilizaremos ReLU, aunque existen otras. ReLu permite el paso de todos los valores positivos sin cambiarlos, pero asigna todos los valores negativos a 0.
+
+## Artículo: Conceptos básicos de Tensor Flow
+
+Tensor Flow es una biblioteca de software de código abierto que permite construir y entrenar redes neuronales, permite detectar y descifrar patrones en los datos. Es un desarrollo de Google y que debido a su flexibilidad y extensa comunidad de programadores ha crecido rápidamente y se ha posicionado como la herramienta líder en el estudio del aprendizaje profundo o también conocido como Deep Learning.
+
+Tensor Flow puede ser usado para ayudar al diagnóstico médico, detectar objetos, procesar imágenes, detección de emociones en el rostro, entre otras aplicaciones. En este curso usamos Tensor Flow para crear nuestra primera red neuronal y diseñar un clasificador de imágenes a partir de un conjunto de datos.
+
+**Importar la biblioteca:**
+```py
+import tensorflow as tf
+```
+**Importar el modelo:**
+```py
+from tensorflow import keras
+```
+**Cargar conjunto de datos de Tensor Flow:**
+```py
+fashion_mnist = keras.datasets.fashion_mnist
+(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
+```
+**Crear modelo secuencial:**
+```py
+model = keras.Sequential([keras.layers.Flatten(input_shape = (28, 28)), keras.layers.Dense(128, activation = tf.nn.relu), keras.layers.Dense(10, activation = tf.nn.softmax)])
+```
+**Compilación del modelo:**
+```py
+model.compile(optimizer = tf.train.AdamOptimizer(), loss = ‘sparse_categorical_crossentropy’, metrics = [‘accuracy’])
+```
+**Entrenamiento:**
+```py
+model.fit(train_images, train_labels, epochs = 5)
+```
+**Evaluación del modelo:**
+```py
+test_loss, test_acc = model.evaluate( test_images, test_labels )
+```
+**Predicción del modelo:**
+```py
+model.predict(test_images)
+```
